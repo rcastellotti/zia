@@ -1,0 +1,292 @@
+<!-- TODO: add slower/faster -->
+
+{% macro command(c,n) -%}
+{% set status = "success" if c['retcode']==0 else "failure" %}
+<div class="command">
+    <div class="command-header">
+        <span style="color:var(--color-text-secondary)">Command {{n}}</span>
+        <span class="{{status}}"> Return Code: {{c['retcode']}} | Duration: {{c['duration']}}s </span>
+    </div>
+    <pre class="{{status}} command-{{status}}">Command: {{c['cmd']}}</pre>
+    <pre class="{{status}} command-{{status}}">STDOUT:
+{{c['stdout']}}</pre>
+    <pre class="{{status}} command-{{status}}">STDERR: 
+{{c['stderr']}}</pre>
+</div>
+{%- endmacro %}
+
+{% macro result(r) -%}
+<div class="result" id="{{ slugify(r['header']) }}">
+    <div class="result-header">
+        <span><a href="#{{ slugify(r['header']) }}">{{ r['header'] }}</a></span>
+        <!-- todo: improve this logic -->
+        {% if r['l']['stdout'] == r['r']['stdout']%}
+        <span class="btn success">IDENTICAL</span>
+        {%else%}
+        <span class="btn failure">DIFFERENT</span>
+        {%endif %}
+    </div>
+    {{command(r['l'],1)}}
+    {{command(r['r'],2)}}
+</div>
+{%- endmacro %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big CLI refactor report</title>
+</head>
+
+<body>
+    <main>
+        <nav>
+            <h1>Zia, visual testing for CLIs</h1>
+            <span id="gen">Generated: {{ timestamp }}</span>
+        </nav>
+        <table>
+            <thead>
+                <tr>
+                    <th>Command</th>
+                    <th>Status 1</th>
+                    <th>Status 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                {% set status_l = "success" if r['l']['retcode']==0 else "failure" %}
+                {% set status_r = "success" if r['r']['retcode']==0 else "failure" %}
+                <tr>
+                    <td style="text-align: left"><a href="#{{ slugify(r['header']) }}">{{ r["header"] }}</a></td>
+                    <td style="font-weight: bold" class="{{status_l}}"> {{ r["l"]["retcode"] }} ({{status_l}}) </td>
+                    <td style="font-weight: bold" class="{{status_r}}"> {{ r["r"]["retcode"] }} ({{status_r}}) </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <section id="results">
+            {% for r in results%}
+            {{result(r)}}
+            {% endfor %}
+        </section>
+        <footer>made with ♥️, 🤓, 🧪 by <a href="https://rcastellotti.dev">rcastellotti</a></footer>
+    </main>
+</body>
+
+</html>
+
+
+<style>
+    :root {
+        --color-primary: #F8F8F8;
+        --color-secondary: #FFFFFF;
+        --color-border: #E5E5E5;
+        --color-text-primary: #000;
+        --color-text-secondary: #444444;
+
+        --color-green-bg: #e6f9ea;
+        --color-green-text: #2a5c2a;
+
+        --color-red-bg: #f9e6e6;
+        --color-red-text: #5c2a2a;
+
+        --color-links: #1E40AF --spacing-xxs: 0.125rem;
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.25rem;
+
+        --font-size-sm: 0.7em;
+        --font-size-base: 0.9em;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --color-primary: #181818;
+            --color-secondary: #1f1f1f;
+
+            --color-text-primary: #CBCBCB;
+            --color-text-secondary: #8A8A8A;
+            --color-border: #636363;
+
+            --color-links: #60A5FA;
+
+
+            --color-green-bg: #383F2B;
+            --color-red-bg: #4E211E;
+
+            --color-red-text: var(--color-text-primary);
+            --color-green-text: var(--color-text-primary);
+
+
+        }
+    }
+
+    #gen {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+    }
+
+    body {
+        background-color: var(--color-primary);
+        color: var(--color-text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        font-size: var(--font-size-sm);
+    }
+
+    @media (min-width: 1080px) {
+        body {
+            font-size: var(--font-size-base);
+
+        }
+    }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        align-items: baseline;
+        margin-bottom: var(--spacing-md);
+    }
+
+    @media (min-width: 1080px) {
+        .nav {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+    }
+
+    main {
+        width: 91.666667%;
+        margin: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @media (min-width: 1080px) {
+        table {
+            width: 40%;
+
+        }
+    }
+
+    th,
+    td {
+        border: 1px solid var(--color-border);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        background-color: var(--color-secondary);
+        text-align: center;
+    }
+
+    th {
+        background-color: var(--color-header-bg);
+    }
+
+    a {
+        font-weight: 600;
+        color: var(--color-links);
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    footer {
+        text-align: center;
+    }
+
+    code {
+        padding: .1em .2em;
+        background-color: #818b981f;
+    }
+
+    pre {
+        padding: var(--spacing-sm);
+        margin: var(--spacing-sm);
+        overflow: auto;
+        line-height: 1.25rem;
+    }
+
+    #results {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .result {
+        background-color: var(--color-primary);
+        border: 1px solid var(--color-border);
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    }
+
+
+    @media (min-width: 1080px) {
+        .result {
+            display: grid;
+        }
+    }
+
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        background-color: var(--color-secondary);
+        padding: var(--spacing-sm) var(--spacing-sm);
+        border-bottom: 2px solid var(--color-border);
+        grid-column: span 2 / span 2;
+
+    }
+
+    .command-header {
+        display: flex;
+        justify-content: space-between;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-sm)
+    }
+
+    .command-success {
+        border: 1px solid var(--color-green-text);
+    }
+
+    .command-failure {
+        border: 1px solid var(--color-red-text);
+    }
+
+    .success {
+        background-color: var(--color-green-bg);
+        color: var(--color-green-text);
+    }
+
+    .failure {
+        background-color: var(--color-red-bg);
+        color: var(--color-red-text);
+    }
+
+    .command-header .success {
+        background-color: transparent;
+        color: var(--color-green-text);
+        font-weight: bold;
+    }
+
+    .command-header .failure {
+        background-color: transparent;
+        color: var(--color-red-text);
+        font-weight: bold;
+
+    }
+
+    .btn {
+        letter-spacing: var(--letter-spacing-wide);
+        border: 1px solid var(--color-text-primary);
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+</style>
