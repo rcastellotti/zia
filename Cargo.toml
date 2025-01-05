@@ -1,0 +1,28 @@
+[package]
+description = "Zia, e2e testing for CLIs"
+name = "zia"
+version = "0.1.0"
+edition = "2021"
+
+default-run = "zia"
+
+[[bin]]
+name = "zoo"
+path = "testdata/zoo.rs"
+
+
+[dependencies]
+chrono = { version = "0.4.39", features = ["clock", "serde"] }
+clap = { version = "4.5.23", features = ["derive"] }
+colored = "2.2.0"
+env_logger = "0.11.6"
+log = "0.4.22"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.134"
+serde_with = "3.12.0"
+similar = "2.6.0"
+toml = "0.8.19"
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+tempfile = "3.15.0"
